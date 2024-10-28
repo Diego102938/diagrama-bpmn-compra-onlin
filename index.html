@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Diagrama BPMN de Compra Online</title>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mxgraph/4.2.2/js/mxClient.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        #graphContainer { width: 100%; height: 600px; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <h2>Diagrama BPMN de Compra Online</h2>
+    <div id="graphContainer"></div>
+
+    <script type="text/javascript">
+        function main(container) {
+            if (!mxClient.isBrowserSupported()) {
+                mxUtils.error('Navegador no compatible', 200, false);
+                return;
+            }
+
+            const graph = new mxGraph(container);
+            graph.setPanning(true);
+            graph.setTooltips(true);
+            graph.setConnectable(true);
+            graph.setCellsMovable(true);
+            new mxRubberband(graph);
+
+            const parent = graph.getDefaultParent();
+            graph.getModel().beginUpdate();
+
+            try {
+                // Estilos de los elementos
+                let style = graph.getStylesheet().getDefaultVertexStyle();
+                style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
+                style[mxConstants.STYLE_ROUNDED] = true;
+                style[mxConstants.STYLE_FONTCOLOR] = '#000000';
+                style[mxConstants.STYLE_FILLCOLOR] = '#ffffff';
+
+                // Swimlanes
+                const clienteLane = graph.insertVertex(parent, null, 'Cliente', 0, 0, 780, 160, 'swimlane');
+                const sistemaPagoLane = graph.insertVertex(parent, null, 'Sistema de Pago', 0, 160, 780, 160, 'swimlane');
+                const sistemaEnvioLane = graph.insertVertex(parent, null, 'Sistema de Envío', 0, 320, 780, 160, 'swimlane');
+
+                // Elementos en el flujo
+                const inicio = graph.insertVertex(clienteLane, null, 'Iniciar compra', 20, 60, 60, 60, 'ellipse');
+                const seleccionarProductos = graph.insertVertex(clienteLane, null, 'Seleccionar productos', 120, 60, 120, 60);
+                const procesarPago = graph.insertVertex(clienteLane, null, 'Procesar Pago', 280, 60, 120, 60);
+                const verificarPago = graph.insertVertex(sistemaPagoLane, null, 'Verificar Pago', 440, 100, 120, 60);
+                const decision = graph.insertVertex(sistemaPagoLane, null, '¿Pago aprobado?', 600, 100, 80, 80, 'rhombus');
+                const prepararEnvio = graph.insertVertex(sistemaEnvioLane, null, 'Preparar Envío', 720, 340, 120, 60);
+                const fin = graph.insertVertex(clienteLane, null, 'Pedido Enviado', 720, 60, 60, 60, 'ellipse');
+
+                // Conexiones
+                graph.insertEdge(parent, null, '', inicio, seleccionarProductos);
+                graph.insertEdge(parent, null, '', seleccionarProductos, procesarPago);
+                graph.insertEdge(parent, null, '', procesarPago, verificarPago);
+                graph.insertEdge(parent, null, '', verificarPago, decision);
+                graph.insertEdge(parent, null, 'Sí', decision, prepararEnvio);
+                graph.insertEdge(parent, null, 'No', decision, procesarPago);
+                graph.insertEdge(parent, null, '', prepararEnvio, fin);
+
+            } finally {
+                graph.getModel().endUpdate();
+            }
+        }
+
+        // Iniciar el gráfico en el contenedor
+        const container = document.getElementById('graphContainer');
+        main(container);
+    </script>
+</body>
+</html>
